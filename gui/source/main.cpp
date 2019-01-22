@@ -542,12 +542,16 @@ void SetHomebrewBootstrap() {
 	fclose(f_nds_file);
 	
 	if (!memcmp(game_TID, "###", 3)) {
-		bootstrapPath = "sd:/_nds/hb-bootstrap.nds";
+		if (settings.twl.bootstrapfile == 1) {
+			bootstrapPath = "sd:/_nds/nds-bootstrap-hb-nightly.nds";
+		} else {
+			bootstrapPath = "sd:/_nds/nds-bootstrap-hb-release.nds";
+		}
 	} else {
 		if (settings.twl.bootstrapfile == 1) {
-			bootstrapPath = "sd:/_nds/unofficial-bootstrap.nds";
+			bootstrapPath = "sd:/_nds/nds-bootstrap-nightly.nds";
 		} else {
-			bootstrapPath = "sd:/_nds/release-bootstrap.nds";
+			bootstrapPath = "sd:/_nds/nds-bootstrap-release.nds";
 		}
 	}
 
@@ -650,9 +654,9 @@ void SetDonorSDK() {
 		settings.twl.donorSdkVer = 5;
 
 		if (settings.twl.bootstrapfile == 1) {
-			bootstrapPath = "sd:/_nds/unofficial-bootstrap-sdk5.nds";
+			bootstrapPath = "sd:/_nds/nds-bootstrap-nightly.nds";
 		} else {
-			bootstrapPath = "sd:/_nds/release-bootstrap-sdk5.nds";
+			bootstrapPath = "sd:/_nds/nds-bootstrap-release.nds";
 		}
 	} else {
 		// TODO: If the list gets large enough, switch to bsearch().
@@ -662,9 +666,9 @@ void SetDonorSDK() {
 				settings.twl.donorSdkVer = 5;
 
 				if (settings.twl.bootstrapfile == 1) {
-					bootstrapPath = "sd:/_nds/unofficial-bootstrap-sdk5.nds";
+					bootstrapPath = "sd:/_nds/nds-bootstrap-nightly.nds";
 				} else {
-					bootstrapPath = "sd:/_nds/release-bootstrap-sdk5.nds";
+					bootstrapPath = "sd:/_nds/nds-bootstrap-release.nds";
 				}
 				break;
 			}
@@ -1721,102 +1725,7 @@ static void drawMenuDialogBox(void)
 	pp2d_draw_rectangle(0, 0, 320, 240, RGBA8(0, 0, 0, menudbox_bgalpha)); // Fade in/out effect
 	pp2d_draw_texture(dialogboxtex, 0, menudbox_Ypos);
 	pp2d_draw_texture(dboxtex_buttonback, 233, menudbox_Ypos+193);
-	if (menudboxmode == DBOX_MODE_CART_DONOR_NOT_SET) {
-		pp2d_draw_text(244, menudbox_Ypos+199, 0.50, 0.50, BLACK, ": No");
-
-		pp2d_draw_texture(dboxtex_buttonback, 143, menudbox_Ypos+193);
-		pp2d_draw_text(152, menudbox_Ypos+199, 0.50, 0.50, BLACK, ": Yes");
-
-		bnriconnum = settings.ui.cursorPosition;
-		ChangeBNRIconNo();
-		pp2d_draw_texture(dboxtex_iconbox, 23, menudbox_Ypos+23);
-		pp2d_draw_texture_part_flip(bnricontexnum, 28, menudbox_Ypos+28, 0, bnriconframenumY[bnriconnum-settings.ui.pagenum*gamesPerPage]*32, 32, 32, bannerFlip[bnriconnum-settings.ui.pagenum*gamesPerPage]);
-		
-		if (settings.ui.cursorPosition >= 0) {
-			int y = 16, dy = 19;
-			// Print the banner text, center-aligned.
-			const size_t banner_lines = std::min(3U, romsel_gameline.size());
-			for (size_t i = 0; i < banner_lines; i++, y += dy) {
-				const int text_width = pp2d_get_wtext_width(romsel_gameline[i].c_str(), 0.60, 0.60);
-				pp2d_draw_wtext(72+(240-text_width)/2, y+menudbox_Ypos, 0.60, 0.60, BLACK, romsel_gameline[i].c_str());
-			}
-			pp2d_draw_wtext(16, 72+menudbox_Ypos, 0.50, 0.50, GRAY, romsel_filename_w.c_str());
-		}
-		
-		const size_t file_count = (settings.twl.forwarder ? fcfiles.size() : files.size());
-
-		char romsel_counter1[16];
-		char romsel_counter2[16];
-		snprintf(romsel_counter1, sizeof(romsel_counter1), "%d", storedcursorPosition+1);		
-		if(matching_files.size() == 0){
-			snprintf(romsel_counter2, sizeof(romsel_counter2), "%zu", file_count);
-		}else{
-			snprintf(romsel_counter2, sizeof(romsel_counter2), "%zu", matching_files.size());
-		}
-		
-		if (file_count < 100) {
-			pp2d_draw_text(16, 204+menudbox_Ypos, 0.50, 0.50, BLACK, romsel_counter1);
-			pp2d_draw_text(35, 204+menudbox_Ypos, 0.50, 0.50, BLACK, "/");
-			pp2d_draw_text(40, 204+menudbox_Ypos, 0.50, 0.50, BLACK, romsel_counter2);
-		} else {
-			pp2d_draw_text(16, 204+menudbox_Ypos, 0.50, 0.50, BLACK, romsel_counter1);
-			pp2d_draw_text(43, 204+menudbox_Ypos, 0.50, 0.50, BLACK, "/");
-			pp2d_draw_text(48, 204+menudbox_Ypos, 0.50, 0.50, BLACK, romsel_counter2);
-		}
-
-		pp2d_draw_text(20, 100+menudbox_Ypos, 0.50, 0.50, BLACK,
-		"This game may not work, if there is no DS/DSi\n"
-		"cart inserted into the card slot to use as\n"
-		"donor for saving.\n"
-		"\n"
-		"Continue anyway?");
-	} else if (menudboxmode == DBOX_MODE_DONOR_NOT_SET) {
-		pp2d_draw_text(244, menudbox_Ypos+199, 0.50, 0.50, BLACK, ": OK");
-
-		bnriconnum = settings.ui.cursorPosition;
-		ChangeBNRIconNo();
-		pp2d_draw_texture(dboxtex_iconbox, 23, menudbox_Ypos+23);
-		pp2d_draw_texture_part_flip(bnricontexnum, 28, menudbox_Ypos+28, 0, bnriconframenumY[bnriconnum-settings.ui.pagenum*gamesPerPage]*32, 32, 32, bannerFlip[bnriconnum-settings.ui.pagenum*gamesPerPage]);
-		
-		if (settings.ui.cursorPosition >= 0) {
-			int y = 16, dy = 19;
-			// Print the banner text, center-aligned.
-			const size_t banner_lines = std::min(3U, romsel_gameline.size());
-			for (size_t i = 0; i < banner_lines; i++, y += dy) {
-				const int text_width = pp2d_get_wtext_width(romsel_gameline[i].c_str(), 0.60, 0.60);
-				pp2d_draw_wtext(72+(240-text_width)/2, y+menudbox_Ypos, 0.60, 0.60, BLACK, romsel_gameline[i].c_str());
-			}
-			pp2d_draw_wtext(16, 72+menudbox_Ypos, 0.50, 0.50, GRAY, romsel_filename_w.c_str());
-		}
-		
-		const size_t file_count = (settings.twl.forwarder ? fcfiles.size() : files.size());
-
-		char romsel_counter1[16];
-		char romsel_counter2[16];
-		snprintf(romsel_counter1, sizeof(romsel_counter1), "%d", storedcursorPosition+1);		
-		if(matching_files.size() == 0){
-			snprintf(romsel_counter2, sizeof(romsel_counter2), "%zu", file_count);
-		}else{
-			snprintf(romsel_counter2, sizeof(romsel_counter2), "%zu", matching_files.size());
-		}
-		
-		if (file_count < 100) {
-			pp2d_draw_text(16, 204+menudbox_Ypos, 0.50, 0.50, BLACK, romsel_counter1);
-			pp2d_draw_text(35, 204+menudbox_Ypos, 0.50, 0.50, BLACK, "/");
-			pp2d_draw_text(40, 204+menudbox_Ypos, 0.50, 0.50, BLACK, romsel_counter2);
-		} else {
-			pp2d_draw_text(16, 204+menudbox_Ypos, 0.50, 0.50, BLACK, romsel_counter1);
-			pp2d_draw_text(43, 204+menudbox_Ypos, 0.50, 0.50, BLACK, "/");
-			pp2d_draw_text(48, 204+menudbox_Ypos, 0.50, 0.50, BLACK, romsel_counter2);
-		}
-
-		pp2d_draw_text(32, 112+menudbox_Ypos, 0.50, 0.50, BLACK,
-		"This game needs a donor ROM set.\n"
-		"\n"
-		"Please set Mario Kart DS as donor ROM,\n"
-		"by moving to the ROM, press SELECT,\n"
-		"then \"Set as donor ROM\".\n");
-	} else if (menudboxmode == DBOX_MODE_OVERLAYS) {
+	if (menudboxmode == DBOX_MODE_OVERLAYS) {
 		pp2d_draw_text(244, menudbox_Ypos+199, 0.50, 0.50, BLACK, ": OK");
 		
 		bnriconnum = settings.ui.cursorPosition;
